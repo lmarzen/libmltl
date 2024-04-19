@@ -1,13 +1,13 @@
 TARGET = main
 CC = gcc
 CXX = g++
-CFLAGS = -Wall -O3 -fopenmp -DNDEBUG -fno-rtti
+CFLAGS = -std=c++17 -Wall -O3 -fopenmp -DNDEBUG -fno-rtti
 # CFLAGS = -Wall -g -fno-rtti
 LDFLAGS =
-OBJECTS = main.o libmltl.o
+OBJECTS = main.o ast.cc parser.o
 
-PYBIND_SRCS = libmltl_pybind.cc libmltl.cc
-PYBIND_TARGET = libmltl$(shell python3-config --extension-suffix)
+PYTHON_SRCS = libmltl_pybind.cc ast.cc parser.cc
+PYTHON_TARGET = libmltl$(shell python3-config --extension-suffix)
 
 .PHONY: default all clean cpp python
 
@@ -20,10 +20,10 @@ python: $(PYTHON_TARGET)
 $(TARGET): $(OBJECTS)
 	$(CXX) $(OBJECTS) $(LDFLAGS) -o $@
 
-$(PYTHON_TARGET): $(PYBIND_SRCS)
-	$(CXX) -shared -fPIC \
+$(PYTHON_TARGET): $(PYTHON_SRCS)
+	$(CXX) -std=c++17 -shared -fPIC \
 		$(shell python3-config --cflags --ldflags) \
-		-o $@ $(PYBIND_SRCS)
+		-o $@ $(PYTHON_SRCS)
 
 clean:
 	rm -f $(TARGET) $(PYTHON_TARGET) *.o *.so vgcore.*

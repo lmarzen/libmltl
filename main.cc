@@ -3,10 +3,17 @@
 #include <iostream>
 #include <sys/time.h>
 
-#include "libmltl.hh"
+#include "parser.hh"
 
 using namespace std;
 
+size_t max_trace_length(const vector<vector<string>> &traces) {
+  size_t max = 0;
+  for (auto &trace : traces) {
+    max = std::max(max, trace.size());
+  }
+  return max;
+}
 
 int main(int argc, char *argv[]) {
   // default options
@@ -47,42 +54,14 @@ int main(int argc, char *argv[]) {
   const uint32_t truth_table_rows = pow(2, num_vars);
   const uint64_t num_boolean_functions = pow(2, pow(2, num_vars));
   vector<string> inputs(truth_table_rows);
-  vector<MLTLUnaryTempOpNode *> boolean_functions_asts(num_boolean_functions);
-  vector<MLTLBinaryTempOpNode *> boolean_functions_asts_until(
+  vector<unique_ptr<ASTNode>> boolean_functions_asts(num_boolean_functions);
+  vector<unique_ptr<ASTNode>> boolean_functions_asts_until(
       num_boolean_functions);
   vector<string> boolean_functions_asts_string(num_boolean_functions);
   vector<string> boolean_functions_asts_until_string(num_boolean_functions);
 
   for (uint32_t i = 0; i < truth_table_rows; ++i) {
     inputs[i] = int_to_bin_str(i, num_vars);
-  }
-
-#pragma omp parallel for num_threads(12)
-  for (uint64_t i = 0; i < num_boolean_functions; ++i) {
-    vector<string> implicants;
-    for (uint32_t j = 0; j < truth_table_rows; ++j) {
-      if ((i >> j) & 1) {
-        implicants.emplace_back(inputs[j]);
-      }
-    }
-    boolean_functions_asts[i] = new MLTLUnaryTempOpNode(
-        MLTLUnaryTempOpType::Globally, 0, 10, quine_mccluskey(implicants));
-    boolean_functions_asts_string[i] = boolean_functions_asts[i]->as_string();
-  }
-
-#pragma omp parallel for num_threads(12)
-  for (uint64_t i = 0; i < num_boolean_functions; ++i) {
-    vector<string> implicants;
-    for (uint32_t j = 0; j < truth_table_rows; ++j) {
-      if ((i >> j) & 1) {
-        implicants.emplace_back(inputs[j]);
-      }
-    }
-    boolean_functions_asts_until[i] = new MLTLBinaryTempOpNode(
-        MLTLBinaryTempOpType::Until, 0, 10, quine_mccluskey(implicants),
-        quine_mccluskey(implicants));
-    boolean_functions_asts_until_string[i] =
-        boolean_functions_asts_until[i]->as_string();
   }
 
   // #pragma omp parallel for
@@ -189,11 +168,8 @@ int main(int argc, char *argv[]) {
   // cout << "path length: " << path.length() << "\n";
   // cout << "path: " << path << "\n";
 
-  for (MLTLUnaryTempOpNode *p : boolean_functions_asts) {
-    delete p;
-  }
 
-  MLTLNode *test = parse("true");
+  unique_ptr<ASTNode> test = parse("true");
   // cout << test->as_string() << "\n";
   // test = parse("false");
   // cout << test->as_string() << "\n";
