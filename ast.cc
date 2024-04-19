@@ -1,16 +1,5 @@
 #include "ast.hh"
 
-/* Helper function to slice a given vector from range x to y.
- */
-vector<string> slice(const vector<string> &a, int x, int y) {
-  auto start = a.begin() + x;
-  auto end = a.begin() + y;
-
-  vector<string> result(y - x);
-  copy(start, end, result.begin());
-  return result;
-}
-
 bool Finally::evaluate_subt(const vector<string> &trace, size_t begin,
                             size_t end) const {
   size_t subt_len = end - begin;
