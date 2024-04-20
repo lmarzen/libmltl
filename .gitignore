@@ -1,4 +1,2 @@
-main
-*.o
-*.so
-vgcore.*
+lib
+obj

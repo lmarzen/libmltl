@@ -5,9 +5,11 @@
 #include <fstream>
 #include <stack>
 
-namespace fs = filesystem;
+#if DEBUG
+#include <iostream>
+#endif
 
-#define DEBUG 0
+namespace fs = filesystem;
 
 /* Precedence:
  *   0 : true false p#

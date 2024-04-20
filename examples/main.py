@@ -1,3 +1,5 @@
+import sys
+sys.path.append("../lib")
 import libmltl as mltl
 
 # Call the parse function to return an AST
@@ -37,5 +39,5 @@ print(copy.as_string())
 # print(ast.release_operand().as_string())
 
 # error example (illegal bounds)
-ast = mltl.parse("G[11,10](~p1)")
+# ast = mltl.parse("G[11,10](~p1)")
 

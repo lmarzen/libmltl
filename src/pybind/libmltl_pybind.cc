@@ -1,7 +1,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
-#include "parser.hh"
+#include "../parser.hh"
 
 /* Some constructor bindings are missing since unique_ptr has no representation
  * in Python. However default constructors can still be used. Please not that
