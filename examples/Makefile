@@ -1,5 +1,5 @@
 CC := g++
-CFLAGS := -std=c++17 -pedantic -Wall -O3 -fno-rtti
+CFLAGS := -std=c++17 -pedantic -Wall -O2 -fno-rtti
 LDFLAGS := -L../lib -lmltl
 INCLUDES := -I../include
 

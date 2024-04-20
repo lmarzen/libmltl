@@ -5,7 +5,7 @@ INCLUDES := -Iinclude
 ifeq ($(DEBUG), 1)
   CFLAGS += -DDEBUG -g -O0
 else
-  CFLAGS += -DNDEBUG -O3
+  CFLAGS += -DNDEBUG -O2
 endif
 
 SRC_PATH := src
@@ -25,10 +25,10 @@ DYNAMIC_PYLIB := $(LIB_PATH)/libmltl$(shell python3-config --extension-suffix)
 # for editors using clangd
 COMPILE_FLAGS := compile_flags.txt
 
-.PHONY: default all clean cpp python examples clean_examples install uninstall
+.PHONY: default all clean cpp python examples clean_examples tests clean_tests install uninstall
 
 default: cpp python $(COMPILE_FLAGS)
-all: cpp python $(COMPILE_FLAGS) examples
+all: cpp python $(COMPILE_FLAGS) examples tests
 cpp: $(STATIC_LIB)
 python: $(DYNAMIC_PYLIB)
 
@@ -47,10 +47,16 @@ $(DYNAMIC_PYLIB): $(SRC_PYBIND) $(SRC) $(HEADERS) Makefile
 		-o $@ $(SRC_PYBIND) $(SRC)
 
 examples:
-	$(MAKE) -C $@
+	$(MAKE) -C examples
 
 clean_examples:
 	$(MAKE) -C examples clean
+
+tests: cpp python
+	$(MAKE) -C tests/regression test
+
+clean_tests:
+	$(MAKE) -C tests/regression clean
 
 FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS) $(shell python3-config --includes)
 $(COMPILE_FLAGS): Makefile
@@ -75,7 +81,7 @@ uninstall:
 	rm -rf $(PREFIX)/lib/libmltl
 	rm -rf $(PREFIX)/include/libmltl
 
-clean: clean_examples
+clean: clean_examples clean_tests
 	rm -rf $(LIB_PATH) $(OBJ_PATH) $(COMPILE_FLAGS)
 
 
