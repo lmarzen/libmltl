@@ -22,11 +22,13 @@ HEADERS := $(foreach x, $(INC_PATH), $(wildcard $(addprefix $(x)/*,.hh)))
 
 STATIC_LIB := $(LIB_PATH)/libmltl.a
 DYNAMIC_PYLIB := $(LIB_PATH)/libmltl$(shell python3-config --extension-suffix)
+# for editors using clangd
+COMPILE_FLAGS := compile_flags.txt
 
-.PHONY: default all clean cpp python examples install uninstall
+.PHONY: default all clean cpp python examples clean_examples install uninstall
 
-default: cpp python
-all: cpp python examples
+default: cpp python $(COMPILE_FLAGS)
+all: cpp python $(COMPILE_FLAGS) examples
 cpp: $(STATIC_LIB)
 python: $(DYNAMIC_PYLIB)
 
@@ -50,6 +52,13 @@ examples:
 clean_examples:
 	$(MAKE) -C examples clean
 
+FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS)
+$(COMPILE_FLAGS): Makefile
+	@echo -n > $(COMPILE_FLAGS)
+	@for flag in $(FLAGS); do \
+	    echo "$$flag" >> $(COMPILE_FLAGS); \
+        done
+
 # if user didn't set install prefix with `make install PREFIX=` use default
 ifeq ($(PREFIX),)
     PREFIX := /usr/local
@@ -66,8 +75,8 @@ uninstall:
 	rm -rf $(PREFIX)/lib/libmltl
 	rm -rf $(PREFIX)/include/libmltl
 
-clean:
-	rm -rf $(LIB_PATH) $(OBJ_PATH)
+clean: clean_examples
+	rm -rf $(LIB_PATH) $(OBJ_PATH) $(COMPILE_FLAGS)
 
 
 
