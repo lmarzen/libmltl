@@ -46,4 +46,3 @@ print("newly built formula:", new_globally.as_string())
 
 # error example (illegal bounds)
 # ast = mltl.parse("G[11,10](~p1)")
-

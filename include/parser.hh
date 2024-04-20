@@ -2,14 +2,14 @@
 
 #include "ast.hh"
 
-using namespace std;
+namespace libmltl {
 
-class syntax_error : public exception {
+class syntax_error : public std::exception {
 private:
-  const string message;
+  const std::string message;
 
 public:
-  syntax_error(const string &message) : message(message) {}
+  syntax_error(const std::string &message) : message(message) {}
   const char *what() const throw() { return message.c_str(); }
 };
 
@@ -20,7 +20,7 @@ public:
  *
  * On an invalid MLTL formula, program will exit and print syntax error.
  */
-unique_ptr<ASTNode> parse(const string &formula);
+std::unique_ptr<ASTNode> parse(const std::string &formula);
 
 /* Reads a trace from file.
  *
@@ -38,11 +38,12 @@ unique_ptr<ASTNode> parse(const string &formula);
  *
  *     Returns {"011","111","010","011"."000"}
  */
-vector<string> read_trace_file(const string &trace_file_path);
+std::vector<std::string> read_trace_file(const std::string &trace_file_path);
 
 /* Reads all files in a directory and parses them as traces.
  */
-vector<vector<string>> read_trace_files(const string &trace_directory_path);
+std::vector<std::vector<std::string>>
+read_trace_files(const std::string &trace_directory_path);
 
 /* Takes an integer and returns a string of 0s and 1s corresponding to the
  * binary value of n. The string will be zero left-padded or truncated to
@@ -51,4 +52,6 @@ vector<vector<string>> read_trace_files(const string &trace_directory_path);
  * ex:
  *   int_to_bin_str(11, 5) == "01011"
  */
-string int_to_bin_str(unsigned int n, int width);
+std::string int_to_bin_str(unsigned int n, int width);
+
+} // namespace libmltl

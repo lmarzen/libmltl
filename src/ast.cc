@@ -1,5 +1,8 @@
 #include "ast.hh"
 
+using namespace std;
+namespace libmltl {
+
 bool Finally::evaluate_subt(const vector<string> &trace, size_t begin,
                             size_t end) const {
   size_t subt_len = end - begin;
@@ -100,3 +103,5 @@ bool Release::evaluate_subt(const vector<string> &trace, size_t begin,
   }
   return true;
 }
+
+} // namespace libmltl

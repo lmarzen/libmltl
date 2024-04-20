@@ -9,7 +9,9 @@
 #include <iostream>
 #endif
 
+using namespace std;
 namespace fs = filesystem;
+namespace libmltl {
 
 /* Precedence:
  *   0 : true false p#
@@ -21,11 +23,11 @@ namespace fs = filesystem;
  *   6 : ->
  *   7 : <->
  */
-constexpr int ConstantPrec = 0;
-constexpr int VariablePrec = 0;
-constexpr int FinallyPrec = 1;
-constexpr int GloballyPrec = 1;
-constexpr int NegPrec = 1;
+// constexpr int ConstantPrec = 0;
+// constexpr int VariablePrec = 0;
+// constexpr int FinallyPrec = 1;
+// constexpr int GloballyPrec = 1;
+// constexpr int NegPrec = 1;
 constexpr int UntilPrec = 2;
 constexpr int ReleasePrec = 2;
 constexpr int AndPrec = 3;
@@ -410,7 +412,8 @@ vector<string> read_trace_file(const string &trace_file_path) {
   return trace;
 }
 
-vector<vector<string>> read_trace_files(const string &trace_directory_path) {
+vector<vector<string>>
+read_trace_files(const string &trace_directory_path) {
   vector<vector<string>> traces;
   for (const auto &entry : fs::directory_iterator(trace_directory_path)) {
     vector<string> new_trace = read_trace_file(entry.path());
@@ -427,3 +430,5 @@ string int_to_bin_str(unsigned int n, int width) {
   }
   return result;
 }
+
+} // namespace libmltl

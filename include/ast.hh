@@ -4,9 +4,7 @@
 #include <string>
 #include <vector>
 
-#define PYBIND
-
-using namespace std;
+namespace libmltl {
 
 class ASTNode {
 public:
@@ -26,12 +24,12 @@ public:
   };
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual string as_string() const = 0;
+  virtual std::string as_string() const = 0;
   /* Evaluates as trace over time steps [begin, end).
    */
-  virtual bool evaluate_subt(const vector<string> &trace, size_t begin,
-                             size_t end) const = 0;
-  bool evaluate(const vector<string> &trace) const {
+  virtual bool evaluate_subt(const std::vector<std::string> &trace,
+                             size_t begin, size_t end) const = 0;
+  bool evaluate(const std::vector<std::string> &trace) const {
     return evaluate_subt(trace, 0, trace.size());
   };
   /* Mission-time LTL (MLTL) Formula Validation Via Regular Expressions
@@ -41,7 +39,7 @@ public:
   virtual size_t future_reach() const = 0;
   virtual size_t size() const = 0;
   virtual size_t count(ASTNode::Type target_type) const = 0;
-  virtual unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
   virtual ~ASTNode() = default;
 };
 
@@ -55,8 +53,8 @@ public:
   bool get_value() const { return val; }
 
   ASTNode::Type get_type() const { return ASTNode::Type::Constant; }
-  string as_string() const { return val ? "true" : "false"; }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  std::string as_string() const { return val ? "true" : "false"; }
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return val;
   }
@@ -65,7 +63,9 @@ public:
   size_t count(ASTNode::Type target_type) const {
     return (get_type() == target_type);
   }
-  unique_ptr<ASTNode> deep_copy() const { return make_unique<Constant>(val); }
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<Constant>(val);
+  }
 };
 
 class Variable : public ASTNode {
@@ -78,8 +78,8 @@ public:
   unsigned int get_id() const { return id; }
 
   ASTNode::Type get_type() const { return ASTNode::Type::Variable; }
-  string as_string() const { return 'p' + to_string(id); }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  std::string as_string() const { return 'p' + std::to_string(id); }
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     if (begin == end || id >= trace[0].length()) {
       return false;
@@ -91,20 +91,22 @@ public:
   size_t count(ASTNode::Type target_type) const {
     return (get_type() == target_type);
   }
-  unique_ptr<ASTNode> deep_copy() const { return make_unique<Variable>(id); }
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<Variable>(id);
+  }
 };
 
 class UnaryOp : public ASTNode {
 protected:
-  unique_ptr<ASTNode> operand;
+  std::unique_ptr<ASTNode> operand;
 
 public:
   UnaryOp() : operand(nullptr){};
-  UnaryOp(unique_ptr<ASTNode> operand) : operand(std::move(operand)){};
+  UnaryOp(std::unique_ptr<ASTNode> operand) : operand(std::move(operand)){};
 
   const ASTNode &get_operand() const { return *operand; }
-  unique_ptr<ASTNode> release_operand() { return std::move(operand); }
-  void set_operand(unique_ptr<ASTNode> new_operand) {
+  std::unique_ptr<ASTNode> release_operand() { return std::move(operand); }
+  void set_operand(std::unique_ptr<ASTNode> new_operand) {
     operand = std::move(new_operand);
   }
 
@@ -114,11 +116,11 @@ public:
   }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual string as_string() const = 0;
-  virtual bool evaluate_subt(const vector<string> &trace, size_t begin,
-                             size_t end) const = 0;
+  virtual std::string as_string() const = 0;
+  virtual bool evaluate_subt(const std::vector<std::string> &trace,
+                             size_t begin, size_t end) const = 0;
   virtual size_t future_reach() const = 0;
-  virtual unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class UnaryPropOp : public UnaryOp {
@@ -128,10 +130,10 @@ public:
   size_t future_reach() const { return operand->future_reach(); }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual string as_string() const = 0;
-  virtual bool evaluate_subt(const vector<string> &trace, size_t begin,
-                             size_t end) const = 0;
-  virtual unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::string as_string() const = 0;
+  virtual bool evaluate_subt(const std::vector<std::string> &trace,
+                             size_t begin, size_t end) const = 0;
+  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class Negation : public UnaryPropOp {
@@ -139,13 +141,13 @@ public:
   using UnaryPropOp::UnaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Negation; }
-  string as_string() const { return '~' + operand->as_string(); }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  std::string as_string() const { return '~' + operand->as_string(); }
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return !operand->evaluate_subt(trace, begin, end);
   }
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<Negation>(operand->deep_copy());
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<Negation>(operand->deep_copy());
   }
 };
 
@@ -155,7 +157,7 @@ protected:
 
 public:
   UnaryTempOp() : UnaryOp(), lb(0), ub(0){};
-  UnaryTempOp(unique_ptr<ASTNode> operand, size_t lb, size_t ub)
+  UnaryTempOp(std::unique_ptr<ASTNode> operand, size_t lb, size_t ub)
       : UnaryOp(std::move(operand)), lb(lb), ub(ub){};
 
   size_t get_lower_bound() const { return lb; }
@@ -166,10 +168,10 @@ public:
   size_t future_reach() const { return ub + operand->future_reach(); }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual string as_string() const = 0;
-  virtual bool evaluate_subt(const vector<string> &trace, size_t begin,
-                             size_t end) const = 0;
-  virtual unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::string as_string() const = 0;
+  virtual bool evaluate_subt(const std::vector<std::string> &trace,
+                             size_t begin, size_t end) const = 0;
+  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class Finally : public UnaryTempOp {
@@ -177,14 +179,14 @@ public:
   using UnaryTempOp::UnaryTempOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Finally; }
-  string as_string() const {
-    return "F[" + to_string(lb) + ',' + to_string(ub) + "](" +
+  std::string as_string() const {
+    return "F[" + std::to_string(lb) + ',' + std::to_string(ub) + "](" +
            operand->as_string() + ')';
   }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<Finally>(operand->deep_copy(), lb, ub);
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<Finally>(operand->deep_copy(), lb, ub);
   }
 };
 
@@ -193,32 +195,36 @@ public:
   using UnaryTempOp::UnaryTempOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Globally; }
-  string as_string() const {
-    return "G[" + to_string(lb) + ',' + to_string(ub) + "](" +
+  std::string as_string() const {
+    return "G[" + std::to_string(lb) + ',' + std::to_string(ub) + "](" +
            operand->as_string() + ')';
   }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<Globally>(operand->deep_copy(), lb, ub);
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<Globally>(operand->deep_copy(), lb, ub);
   }
 };
 
 class BinaryOp : public ASTNode {
 protected:
-  unique_ptr<ASTNode> left, right;
+  std::unique_ptr<ASTNode> left, right;
 
 public:
   BinaryOp() : left(nullptr), right(nullptr){};
-  BinaryOp(unique_ptr<ASTNode> left, unique_ptr<ASTNode> right)
+  BinaryOp(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode> right)
       : left(std::move(left)), right(std::move(right)){};
 
   const ASTNode &get_left() const { return *left; }
   const ASTNode &get_right() const { return *right; }
-  unique_ptr<ASTNode> release_left() { return std::move(left); }
-  unique_ptr<ASTNode> release_right() { return std::move(right); }
-  void set_left(unique_ptr<ASTNode> new_left) { left = std::move(new_left); }
-  void set_right(unique_ptr<ASTNode> new_right) { left = std::move(new_right); }
+  std::unique_ptr<ASTNode> release_left() { return std::move(left); }
+  std::unique_ptr<ASTNode> release_right() { return std::move(right); }
+  void set_left(std::unique_ptr<ASTNode> new_left) {
+    left = std::move(new_left);
+  }
+  void set_right(std::unique_ptr<ASTNode> new_right) {
+    left = std::move(new_right);
+  }
 
   size_t size() const { return 1 + left->size() + right->size(); }
   size_t count(ASTNode::Type target_type) const {
@@ -227,11 +233,11 @@ public:
   }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual string as_string() const = 0;
-  virtual bool evaluate_subt(const vector<string> &trace, size_t begin,
-                             size_t end) const = 0;
+  virtual std::string as_string() const = 0;
+  virtual bool evaluate_subt(const std::vector<std::string> &trace,
+                             size_t begin, size_t end) const = 0;
   virtual size_t future_reach() const = 0;
-  virtual unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class BinaryPropOp : public BinaryOp {
@@ -239,14 +245,14 @@ public:
   using BinaryOp::BinaryOp; // inherit base-class constructor
 
   size_t future_reach() const {
-    return max(left->future_reach(), right->future_reach());
+    return std::max(left->future_reach(), right->future_reach());
   }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual string as_string() const = 0;
-  virtual bool evaluate_subt(const vector<string> &trace, size_t begin,
-                             size_t end) const = 0;
-  virtual unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::string as_string() const = 0;
+  virtual bool evaluate_subt(const std::vector<std::string> &trace,
+                             size_t begin, size_t end) const = 0;
+  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class And : public BinaryPropOp {
@@ -254,16 +260,16 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::And; }
-  string as_string() const {
+  std::string as_string() const {
     return '(' + left->as_string() + ")&(" + right->as_string() + ')';
   }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return left->evaluate_subt(trace, begin, end) &&
            right->evaluate_subt(trace, begin, end);
   }
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<And>(left->deep_copy(), right->deep_copy());
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<And>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -272,16 +278,16 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Xor; }
-  string as_string() const {
+  std::string as_string() const {
     return '(' + left->as_string() + ")^(" + right->as_string() + ')';
   }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return left->evaluate_subt(trace, begin, end) !=
            right->evaluate_subt(trace, begin, end);
   }
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<And>(left->deep_copy(), right->deep_copy());
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<And>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -290,16 +296,16 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Or; }
-  string as_string() const {
+  std::string as_string() const {
     return '(' + left->as_string() + ")|(" + right->as_string() + ')';
   }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return left->evaluate_subt(trace, begin, end) ||
            right->evaluate_subt(trace, begin, end);
   }
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<Or>(left->deep_copy(), right->deep_copy());
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<Or>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -308,16 +314,16 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Implies; }
-  string as_string() const {
+  std::string as_string() const {
     return '(' + left->as_string() + ")->(" + right->as_string() + ')';
   }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return !left->evaluate_subt(trace, begin, end) ||
            right->evaluate_subt(trace, begin, end);
   }
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<Implies>(left->deep_copy(), right->deep_copy());
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<Implies>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -326,16 +332,16 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Equiv; }
-  string as_string() const {
+  std::string as_string() const {
     return '(' + left->as_string() + ")<->(" + right->as_string() + ')';
   }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return left->evaluate_subt(trace, begin, end) ==
            right->evaluate_subt(trace, begin, end);
   }
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<Equiv>(left->deep_copy(), right->deep_copy());
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<Equiv>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -345,8 +351,8 @@ protected:
 
 public:
   BinaryTempOp() : BinaryOp(), lb(0), ub(0){};
-  BinaryTempOp(unique_ptr<ASTNode> left, unique_ptr<ASTNode> right, size_t lb,
-               size_t ub)
+  BinaryTempOp(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode> right,
+               size_t lb, size_t ub)
       : BinaryOp(std::move(left), std::move(right)), lb(lb), ub(ub){};
 
   size_t get_lower_bound() const { return lb; }
@@ -365,10 +371,10 @@ public:
   }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual string as_string() const = 0;
-  virtual bool evaluate_subt(const vector<string> &trace, size_t begin,
-                             size_t end) const = 0;
-  virtual unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::string as_string() const = 0;
+  virtual bool evaluate_subt(const std::vector<std::string> &trace,
+                             size_t begin, size_t end) const = 0;
+  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class Until : public BinaryTempOp {
@@ -376,14 +382,15 @@ public:
   using BinaryTempOp::BinaryTempOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Until; }
-  string as_string() const {
-    return '(' + left->as_string() + ")U[" + to_string(lb) + ',' +
-           to_string(ub) + "](" + right->as_string() + ')';
+  std::string as_string() const {
+    return '(' + left->as_string() + ")U[" + std::to_string(lb) + ',' +
+           std::to_string(ub) + "](" + right->as_string() + ')';
   }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<Until>(left->deep_copy(), right->deep_copy(), lb, ub);
+  std::unique_ptr<ASTNode> deep_copy() const {
+    return std::make_unique<Until>(left->deep_copy(), right->deep_copy(), lb,
+                                   ub);
   }
 };
 
@@ -392,13 +399,17 @@ public:
   using BinaryTempOp::BinaryTempOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Release; }
-  string as_string() const {
-    return '(' + left->as_string() + ")R[" + to_string(lb) + ',' +
-           to_string(ub) + "](" + right->as_string() + ')';
+  std::string as_string() const {
+    return '(' + left->as_string() + ")R[" + std::to_string(lb) + ',' +
+           std::to_string(ub) + "](" + right->as_string() + ')';
   }
-  bool evaluate_subt(const vector<string> &trace, size_t begin,
+  bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
-  unique_ptr<ASTNode> deep_copy() const {
-    return make_unique<Release>(left->deep_copy(), right->deep_copy(), lb, ub);
+  std::unique_ptr<ASTNode> deep_copy() const {
+
+    return std::make_unique<Release>(left->deep_copy(), right->deep_copy(), lb,
+                                     ub);
   }
 };
+
+} // namespace libmltl

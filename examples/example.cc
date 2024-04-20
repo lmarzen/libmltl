@@ -6,6 +6,7 @@
 #include "parser.hh"
 
 using namespace std;
+using namespace libmltl;
 
 size_t max_trace_length(const vector<vector<string>> &traces) {
   size_t max = 0;
