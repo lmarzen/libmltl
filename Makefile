@@ -52,12 +52,12 @@ examples:
 clean_examples:
 	$(MAKE) -C examples clean
 
-FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS)
+FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS) $(shell python3-config --includes)
 $(COMPILE_FLAGS): Makefile
 	@echo -n > $(COMPILE_FLAGS)
 	@for flag in $(FLAGS); do \
 	    echo "$$flag" >> $(COMPILE_FLAGS); \
-        done
+	done
 
 # if user didn't set install prefix with `make install PREFIX=` use default
 ifeq ($(PREFIX),)
