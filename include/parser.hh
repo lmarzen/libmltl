@@ -14,9 +14,7 @@ public:
 };
 
 /* Parses a string representing an MLTL formula. Returns a pointer to the root
- * node of the AST representation. To avoid memory leaks delete must be called
- * on the pointer when it is no longer needed. Calling delete will recursively
- * free all nodes in the AST.
+ * node of the AST representation. 
  *
  * On an invalid MLTL formula, program will exit and print syntax error.
  */
