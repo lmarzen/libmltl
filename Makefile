@@ -27,8 +27,8 @@ COMPILE_FLAGS := compile_flags.txt
 
 .PHONY: default all clean cpp python examples clean_examples tests clean_tests install uninstall
 
-default: cpp python $(COMPILE_FLAGS)
-all: cpp python $(COMPILE_FLAGS) examples tests
+default: $(COMPILE_FLAGS) cpp python
+all: $(COMPILE_FLAGS) cpp python examples tests
 cpp: $(STATIC_LIB)
 python: $(DYNAMIC_PYLIB)
 
