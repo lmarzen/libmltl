@@ -489,18 +489,6 @@ public:
     }
     return ub + rfr;
   }
-  // bool operator<(const ASTNode &other) const {
-  //   if (get_type() == other.get_type()) {
-  //     if (*operand == *static_cast<const UnaryTempOp &>(other).operand) {
-  //       if (lb == static_cast<const UnaryTempOp &>(other).lb) {
-  //         return (ub < static_cast<const UnaryTempOp &>(other).ub);
-  //       }
-  //       return (lb < static_cast<const UnaryTempOp &>(other).lb);
-  //     }
-  //     return (*operand < *static_cast<const UnaryTempOp &>(other).operand);
-  //   }
-  //   return (get_type() < other.get_type());
-  // }
   bool operator==(const ASTNode &other) const {
     return ((get_type() == other.get_type()) &&
             (*left == *static_cast<const BinaryTempOp &>(other).left) &&
