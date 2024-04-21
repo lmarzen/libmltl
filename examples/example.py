@@ -44,5 +44,9 @@ new_globally.set_upper_bound(2)
 new_globally.set_operand(mltl.Variable(1)) # p1
 print("newly built formula:", new_globally.as_string())
 
+# use comparison operators: ==, !=, <, >, <=, >=
+print(mltl.parse("(F[0,2](p3))") == mltl.parse("(F[0,2](p1))"))
+print(mltl.parse("(F[0,2](p3))") < mltl.parse("(F[0,3](p3))"))
+
 # error example (illegal bounds)
 # ast = mltl.parse("G[11,10](~p1)")

@@ -77,22 +77,20 @@ public:
     return std::make_unique<Constant>(val);
   }
   bool operator==(const ASTNode &other) const {
-    if (get_type() == other.get_type()) {
-      return val == static_cast<const Constant &>(other).val;
-    }
-    return false;
+    return ((get_type() == other.get_type()) &&
+            (val == static_cast<const Constant &>(other).val));
   }
   bool operator<(const ASTNode &other) const {
     if (get_type() == other.get_type()) {
-      return val < static_cast<const Constant &>(other).val;
+      return (val < static_cast<const Constant &>(other).val);
     }
-    return get_type() < other.get_type();
+    return (get_type() < other.get_type());
   }
   bool operator<=(const ASTNode &other) const {
     if (get_type() == other.get_type()) {
-      return val <= static_cast<const Constant &>(other).val;
+      return (val <= static_cast<const Constant &>(other).val);
     }
-    return get_type() <= other.get_type();
+    return (get_type() <= other.get_type());
   }
 };
 
@@ -124,22 +122,20 @@ public:
     return std::make_unique<Variable>(id);
   }
   bool operator==(const ASTNode &other) const {
-    if (get_type() == other.get_type()) {
-      return id == static_cast<const Variable &>(other).id;
-    }
-    return false;
+    return ((get_type() == other.get_type()) &&
+            (id == static_cast<const Variable &>(other).id));
   }
   bool operator<(const ASTNode &other) const {
     if (get_type() == other.get_type()) {
-      return id < static_cast<const Variable &>(other).id;
+      return (id < static_cast<const Variable &>(other).id);
     }
-    return get_type() < other.get_type();
+    return (get_type() < other.get_type());
   }
   bool operator<=(const ASTNode &other) const {
     if (get_type() == other.get_type()) {
-      return id <= static_cast<const Variable &>(other).id;
+      return (id <= static_cast<const Variable &>(other).id);
     }
-    return get_type() <= other.get_type();
+    return (get_type() <= other.get_type());
   }
 };
 
@@ -162,24 +158,6 @@ public:
   size_t count(ASTNode::Type target_type) const {
     return (get_type() == target_type) + operand->count(target_type);
   }
-  bool operator==(const ASTNode &other) const {
-    if (get_type() == other.get_type()) {
-      return *operand == *static_cast<const UnaryOp &>(other).operand;
-    }
-    return false;
-  }
-  bool operator<(const ASTNode &other) const {
-    if (get_type() == other.get_type()) {
-      return *operand < *static_cast<const UnaryOp &>(other).operand;
-    }
-    return get_type() < other.get_type();
-  }
-  bool operator<=(const ASTNode &other) const {
-    if (get_type() == other.get_type()) {
-      return *operand <= *static_cast<const UnaryOp &>(other).operand;
-    }
-    return get_type() <= other.get_type();
-  }
 
   virtual ASTNode::Type get_type() const = 0;
   virtual std::string as_string() const = 0;
@@ -187,6 +165,9 @@ public:
                              size_t begin, size_t end) const = 0;
   virtual size_t future_reach() const = 0;
   virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual bool operator==(const ASTNode &other) const = 0;
+  virtual bool operator<(const ASTNode &other) const = 0;
+  virtual bool operator<=(const ASTNode &other) const = 0;
 };
 
 class UnaryPropOp : public UnaryOp {
@@ -194,6 +175,22 @@ public:
   using UnaryOp::UnaryOp; // inherit base-class constructors
 
   size_t future_reach() const { return operand->future_reach(); }
+  bool operator==(const ASTNode &other) const {
+    return ((get_type() == other.get_type()) &&
+            (*operand == *static_cast<const UnaryPropOp &>(other).operand));
+  }
+  bool operator<(const ASTNode &other) const {
+    if (get_type() == other.get_type()) {
+      return (*operand < *static_cast<const UnaryPropOp &>(other).operand);
+    }
+    return (get_type() < other.get_type());
+  }
+  bool operator<=(const ASTNode &other) const {
+    if (get_type() == other.get_type()) {
+      return (*operand <= *static_cast<const UnaryPropOp &>(other).operand);
+    }
+    return (get_type() <= other.get_type());
+  }
 
   virtual ASTNode::Type get_type() const = 0;
   virtual std::string as_string() const = 0;
@@ -232,6 +229,36 @@ public:
   void set_upper_bound(size_t new_ub) { ub = new_ub; }
 
   size_t future_reach() const { return ub + operand->future_reach(); }
+  bool operator==(const ASTNode &other) const {
+    return ((get_type() == other.get_type()) &&
+            (*operand == *static_cast<const UnaryTempOp &>(other).operand) &&
+            (lb == static_cast<const UnaryTempOp &>(other).lb) &&
+            (ub == static_cast<const UnaryTempOp &>(other).ub));
+  }
+  bool operator<(const ASTNode &other) const {
+    if (get_type() == other.get_type()) {
+      if (*operand == *static_cast<const UnaryTempOp &>(other).operand) {
+        if (lb == static_cast<const UnaryTempOp &>(other).lb) {
+          return (ub < static_cast<const UnaryTempOp &>(other).ub);
+        }
+        return (lb < static_cast<const UnaryTempOp &>(other).lb);
+      }
+      return (*operand < *static_cast<const UnaryTempOp &>(other).operand);
+    }
+    return (get_type() < other.get_type());
+  }
+  bool operator<=(const ASTNode &other) const {
+    if (get_type() == other.get_type()) {
+      if (*operand == *static_cast<const UnaryTempOp &>(other).operand) {
+        if (lb == static_cast<const UnaryTempOp &>(other).lb) {
+          return (ub <= static_cast<const UnaryTempOp &>(other).ub);
+        }
+        return (lb <= static_cast<const UnaryTempOp &>(other).lb);
+      }
+      return (*operand <= *static_cast<const UnaryTempOp &>(other).operand);
+    }
+    return (get_type() <= other.get_type());
+  }
 
   virtual ASTNode::Type get_type() const = 0;
   virtual std::string as_string() const = 0;
@@ -298,31 +325,6 @@ public:
     return (get_type() == target_type) + left->count(target_type) +
            right->count(target_type);
   }
-  bool operator==(const ASTNode &other) const {
-    if (get_type() == other.get_type()) {
-      return (*left == *static_cast<const BinaryOp &>(other).left) &&
-             (*right == *static_cast<const BinaryOp &>(other).right);
-    }
-    return false;
-  }
-  bool operator<(const ASTNode &other) const {
-    if (get_type() == other.get_type()) {
-      if (*left == *static_cast<const BinaryOp &>(other).left) {
-        return *right < *static_cast<const BinaryOp &>(other).right;
-      }
-      return *left < *static_cast<const BinaryOp &>(other).left;
-    }
-    return get_type() < other.get_type();
-  }
-  bool operator<=(const ASTNode &other) const {
-    if (get_type() == other.get_type()) {
-      if (*left == *static_cast<const BinaryOp &>(other).left) {
-        return *right <= *static_cast<const BinaryOp &>(other).right;
-      }
-      return *left <= *static_cast<const BinaryOp &>(other).left;
-    }
-    return get_type() <= other.get_type();
-  }
 
   virtual ASTNode::Type get_type() const = 0;
   virtual std::string as_string() const = 0;
@@ -330,6 +332,9 @@ public:
                              size_t begin, size_t end) const = 0;
   virtual size_t future_reach() const = 0;
   virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual bool operator==(const ASTNode &other) const = 0;
+  virtual bool operator<(const ASTNode &other) const = 0;
+  virtual bool operator<=(const ASTNode &other) const = 0;
 };
 
 class BinaryPropOp : public BinaryOp {
@@ -338,6 +343,29 @@ public:
 
   size_t future_reach() const {
     return std::max(left->future_reach(), right->future_reach());
+  }
+  bool operator==(const ASTNode &other) const {
+    return ((get_type() == other.get_type()) &&
+            (*left == *static_cast<const BinaryPropOp &>(other).left) &&
+            (*right == *static_cast<const BinaryPropOp &>(other).right));
+  }
+  bool operator<(const ASTNode &other) const {
+    if (get_type() == other.get_type()) {
+      if (*left == *static_cast<const BinaryPropOp &>(other).left) {
+        return (*right < *static_cast<const BinaryPropOp &>(other).right);
+      }
+      return (*left < *static_cast<const BinaryPropOp &>(other).left);
+    }
+    return (get_type() < other.get_type());
+  }
+  bool operator<=(const ASTNode &other) const {
+    if (get_type() == other.get_type()) {
+      if (*left == *static_cast<const BinaryPropOp &>(other).left) {
+        return (*right <= *static_cast<const BinaryPropOp &>(other).right);
+      }
+      return (*left <= *static_cast<const BinaryPropOp &>(other).left);
+    }
+    return (get_type() <= other.get_type());
   }
 
   virtual ASTNode::Type get_type() const = 0;
@@ -460,6 +488,55 @@ public:
       return ub + lfr - 1;
     }
     return ub + rfr;
+  }
+  // bool operator<(const ASTNode &other) const {
+  //   if (get_type() == other.get_type()) {
+  //     if (*operand == *static_cast<const UnaryTempOp &>(other).operand) {
+  //       if (lb == static_cast<const UnaryTempOp &>(other).lb) {
+  //         return (ub < static_cast<const UnaryTempOp &>(other).ub);
+  //       }
+  //       return (lb < static_cast<const UnaryTempOp &>(other).lb);
+  //     }
+  //     return (*operand < *static_cast<const UnaryTempOp &>(other).operand);
+  //   }
+  //   return (get_type() < other.get_type());
+  // }
+  bool operator==(const ASTNode &other) const {
+    return ((get_type() == other.get_type()) &&
+            (*left == *static_cast<const BinaryTempOp &>(other).left) &&
+            (*right == *static_cast<const BinaryTempOp &>(other).right) &&
+            (lb == static_cast<const BinaryTempOp &>(other).lb) &&
+            (ub == static_cast<const BinaryTempOp &>(other).ub));
+  }
+  bool operator<(const ASTNode &other) const {
+    if (get_type() == other.get_type()) {
+      if (*left == *static_cast<const BinaryTempOp &>(other).left) {
+        if (*right == *static_cast<const BinaryTempOp &>(other).right) {
+          if (lb == static_cast<const BinaryTempOp &>(other).lb) {
+            return (ub < static_cast<const BinaryTempOp &>(other).ub);
+          }
+          return (lb < static_cast<const BinaryTempOp &>(other).lb);
+        }
+        return *right < *static_cast<const BinaryTempOp &>(other).right;
+      }
+      return (*left < *static_cast<const BinaryTempOp &>(other).left);
+    }
+    return (get_type() < other.get_type());
+  }
+  bool operator<=(const ASTNode &other) const {
+    if (get_type() == other.get_type()) {
+      if (*left == *static_cast<const BinaryTempOp &>(other).left) {
+        if (*right == *static_cast<const BinaryTempOp &>(other).right) {
+          if (lb == static_cast<const BinaryTempOp &>(other).lb) {
+            return (ub <= static_cast<const BinaryTempOp &>(other).ub);
+          }
+          return (lb <= static_cast<const BinaryTempOp &>(other).lb);
+        }
+        return *right <= *static_cast<const BinaryTempOp &>(other).right;
+      }
+      return (*left <= *static_cast<const BinaryTempOp &>(other).left);
+    }
+    return (get_type() <= other.get_type());
   }
 
   virtual ASTNode::Type get_type() const = 0;
