@@ -549,14 +549,14 @@ public:
   }
   std::string as_pretty_string() const {
     std::string result = "";
-    if (left->is_binary_op() && (get_type() != left->get_type())) {
+    if (left->is_binary_op()) {
       result += "(" + left->as_pretty_string() + ")";
     } else {
       result += left->as_pretty_string();
     }
     result += " " + get_symbol() + "[" + std::to_string(lb) + "," +
               std::to_string(ub) + "] ";
-    if (right->is_binary_op() && (get_type() != right->get_type())) {
+    if (right->is_binary_op()) {
       result += "(" + right->as_pretty_string() + ")";
     } else {
       result += right->as_pretty_string();
