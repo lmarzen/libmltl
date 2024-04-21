@@ -24,7 +24,13 @@ public:
   };
 
   virtual ASTNode::Type get_type() const = 0;
+  virtual bool is_unary_op() const = 0;
+  virtual bool is_binary_op() const = 0;
+  virtual bool is_propositional_op() const = 0;
+  virtual bool is_temporal_op() const = 0;
   virtual std::string as_string() const = 0;
+  virtual std::string as_pretty_string() const = 0;
+  virtual std::string get_symbol() const = 0;
   /* Evaluates as trace over time steps [begin, end).
    */
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
@@ -62,7 +68,13 @@ public:
   bool get_value() const { return val; }
 
   ASTNode::Type get_type() const { return ASTNode::Type::Constant; }
+  bool is_unary_op() const { return false; };
+  bool is_binary_op() const { return false; };
+  bool is_propositional_op() const { return false; };
+  bool is_temporal_op() const { return false; };
   std::string as_string() const { return val ? "true" : "false"; }
+  std::string as_pretty_string() const { return as_string(); }
+  std::string get_symbol() const { return as_string(); }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return val;
@@ -104,7 +116,13 @@ public:
   unsigned int get_id() const { return id; }
 
   ASTNode::Type get_type() const { return ASTNode::Type::Variable; }
+  bool is_unary_op() const { return false; };
+  bool is_binary_op() const { return false; };
+  bool is_propositional_op() const { return false; };
+  bool is_temporal_op() const { return false; };
   std::string as_string() const { return 'p' + std::to_string(id); }
+  std::string as_pretty_string() const { return as_string(); }
+  std::string get_symbol() const { return as_string(); }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     if (begin == end || id >= trace[0].length()) {
@@ -153,6 +171,8 @@ public:
     operand = std::move(new_operand);
   }
 
+  bool is_unary_op() const { return true; };
+  bool is_binary_op() const { return false; };
   size_t size() const { return 1 + operand->size(); }
   size_t depth() const { return 1 + operand->depth(); }
   size_t count(ASTNode::Type target_type) const {
@@ -160,7 +180,11 @@ public:
   }
 
   virtual ASTNode::Type get_type() const = 0;
+  virtual bool is_propositional_op() const = 0;
+  virtual bool is_temporal_op() const = 0;
   virtual std::string as_string() const = 0;
+  virtual std::string as_pretty_string() const = 0;
+  virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
   virtual size_t future_reach() const = 0;
@@ -174,6 +198,17 @@ class UnaryPropOp : public UnaryOp {
 public:
   using UnaryOp::UnaryOp; // inherit base-class constructors
 
+  bool is_propositional_op() const { return true; };
+  bool is_temporal_op() const { return false; };
+  std::string as_string() const {
+    return get_symbol() + "(" + operand->as_string() + ")";
+  }
+  std::string as_pretty_string() const {
+    if (operand->is_binary_op()) {
+      return get_symbol() + "(" + operand->as_pretty_string() + ")";
+    }
+    return get_symbol() + operand->as_pretty_string();
+  }
   size_t future_reach() const { return operand->future_reach(); }
   bool operator==(const ASTNode &other) const {
     return ((get_type() == other.get_type()) &&
@@ -193,7 +228,7 @@ public:
   }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual std::string as_string() const = 0;
+  virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
   virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
@@ -204,7 +239,7 @@ public:
   using UnaryPropOp::UnaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Negation; }
-  std::string as_string() const { return '~' + operand->as_string(); }
+  std::string get_symbol() const { return "~"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return !operand->evaluate_subt(trace, begin, end);
@@ -228,6 +263,20 @@ public:
   void set_lower_bound(size_t new_lb) { lb = new_lb; }
   void set_upper_bound(size_t new_ub) { ub = new_ub; }
 
+  bool is_propositional_op() const { return false; };
+  bool is_temporal_op() const { return true; };
+  std::string as_string() const {
+    return get_symbol() + "[" + std::to_string(lb) + "," + std::to_string(ub) +
+           "](" + operand->as_string() + ")";
+  }
+  std::string as_pretty_string() const {
+    if (operand->is_binary_op()) {
+      return get_symbol() + "[" + std::to_string(lb) + "," +
+             std::to_string(ub) + "](" + operand->as_pretty_string() + ")";
+    }
+    return get_symbol() + "[" + std::to_string(lb) + "," + std::to_string(ub) +
+           "]" + operand->as_pretty_string();
+  }
   size_t future_reach() const { return ub + operand->future_reach(); }
   bool operator==(const ASTNode &other) const {
     return ((get_type() == other.get_type()) &&
@@ -261,7 +310,7 @@ public:
   }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual std::string as_string() const = 0;
+  virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
   virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
@@ -272,10 +321,7 @@ public:
   using UnaryTempOp::UnaryTempOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Finally; }
-  std::string as_string() const {
-    return "F[" + std::to_string(lb) + ',' + std::to_string(ub) + "](" +
-           operand->as_string() + ')';
-  }
+  std::string get_symbol() const { return "F"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
   std::unique_ptr<ASTNode> deep_copy() const {
@@ -288,10 +334,7 @@ public:
   using UnaryTempOp::UnaryTempOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Globally; }
-  std::string as_string() const {
-    return "G[" + std::to_string(lb) + ',' + std::to_string(ub) + "](" +
-           operand->as_string() + ')';
-  }
+  std::string get_symbol() const { return "G"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
   std::unique_ptr<ASTNode> deep_copy() const {
@@ -319,6 +362,8 @@ public:
     left = std::move(new_right);
   }
 
+  bool is_unary_op() const { return false; };
+  bool is_binary_op() const { return true; };
   size_t size() const { return 1 + left->size() + right->size(); }
   size_t depth() const { return 1 + std::max(left->depth(), right->depth()); }
   size_t count(ASTNode::Type target_type) const {
@@ -327,7 +372,11 @@ public:
   }
 
   virtual ASTNode::Type get_type() const = 0;
+  virtual bool is_propositional_op() const = 0;
+  virtual bool is_temporal_op() const = 0;
   virtual std::string as_string() const = 0;
+  virtual std::string as_pretty_string() const = 0;
+  virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
   virtual size_t future_reach() const = 0;
@@ -341,6 +390,27 @@ class BinaryPropOp : public BinaryOp {
 public:
   using BinaryOp::BinaryOp; // inherit base-class constructor
 
+  bool is_propositional_op() const { return true; };
+  bool is_temporal_op() const { return false; };
+  std::string as_string() const {
+    return "(" + left->as_string() + ")" + get_symbol() + "(" +
+           right->as_string() + ")";
+  }
+  std::string as_pretty_string() const {
+    std::string result = "";
+    if (left->is_binary_op() && (get_type() != left->get_type())) {
+      result += "(" + left->as_pretty_string() + ")";
+    } else {
+      result += left->as_pretty_string();
+    }
+    result += " " + get_symbol() + " ";
+    if (right->is_binary_op() && (get_type() != right->get_type())) {
+      result += "(" + right->as_pretty_string() + ")";
+    } else {
+      result += right->as_pretty_string();
+    }
+    return result;
+  }
   size_t future_reach() const {
     return std::max(left->future_reach(), right->future_reach());
   }
@@ -369,7 +439,7 @@ public:
   }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual std::string as_string() const = 0;
+  virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
   virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
@@ -380,9 +450,7 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::And; }
-  std::string as_string() const {
-    return '(' + left->as_string() + ")&(" + right->as_string() + ')';
-  }
+  std::string get_symbol() const { return "&"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return left->evaluate_subt(trace, begin, end) &&
@@ -398,9 +466,7 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Xor; }
-  std::string as_string() const {
-    return '(' + left->as_string() + ")^(" + right->as_string() + ')';
-  }
+  std::string get_symbol() const { return "^"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return left->evaluate_subt(trace, begin, end) !=
@@ -416,9 +482,7 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Or; }
-  std::string as_string() const {
-    return '(' + left->as_string() + ")|(" + right->as_string() + ')';
-  }
+  std::string get_symbol() const { return "|"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return left->evaluate_subt(trace, begin, end) ||
@@ -434,9 +498,7 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Implies; }
-  std::string as_string() const {
-    return '(' + left->as_string() + ")->(" + right->as_string() + ')';
-  }
+  std::string get_symbol() const { return "->"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return !left->evaluate_subt(trace, begin, end) ||
@@ -452,9 +514,7 @@ public:
   using BinaryPropOp::BinaryPropOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Equiv; }
-  std::string as_string() const {
-    return '(' + left->as_string() + ")<->(" + right->as_string() + ')';
-  }
+  std::string get_symbol() const { return "<->"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const {
     return left->evaluate_subt(trace, begin, end) ==
@@ -480,6 +540,29 @@ public:
   void set_lower_bound(size_t new_lb) { lb = new_lb; }
   void set_upper_bound(size_t new_ub) { ub = new_ub; }
 
+  bool is_propositional_op() const { return false; };
+  bool is_temporal_op() const { return true; };
+  std::string as_string() const {
+    return '(' + left->as_string() + ")" + get_symbol() + "[" +
+           std::to_string(lb) + "," + std::to_string(ub) + "](" +
+           right->as_string() + ")";
+  }
+  std::string as_pretty_string() const {
+    std::string result = "";
+    if (left->is_binary_op() && (get_type() != left->get_type())) {
+      result += "(" + left->as_pretty_string() + ")";
+    } else {
+      result += left->as_pretty_string();
+    }
+    result += " " + get_symbol() + "[" + std::to_string(lb) + "," +
+              std::to_string(ub) + "] ";
+    if (right->is_binary_op() && (get_type() != right->get_type())) {
+      result += "(" + right->as_pretty_string() + ")";
+    } else {
+      result += right->as_pretty_string();
+    }
+    return result;
+  }
   size_t future_reach() const {
     // need to be careful here to avoid an underflow when subtracting 1
     size_t lfr = left->future_reach();
@@ -528,7 +611,7 @@ public:
   }
 
   virtual ASTNode::Type get_type() const = 0;
-  virtual std::string as_string() const = 0;
+  virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
   virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
@@ -539,10 +622,7 @@ public:
   using BinaryTempOp::BinaryTempOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Until; }
-  std::string as_string() const {
-    return '(' + left->as_string() + ")U[" + std::to_string(lb) + ',' +
-           std::to_string(ub) + "](" + right->as_string() + ')';
-  }
+  std::string get_symbol() const { return "U"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
   std::unique_ptr<ASTNode> deep_copy() const {
@@ -556,10 +636,7 @@ public:
   using BinaryTempOp::BinaryTempOp; // inherit base-class constructors
 
   ASTNode::Type get_type() const { return ASTNode::Type::Release; }
-  std::string as_string() const {
-    return '(' + left->as_string() + ")R[" + std::to_string(lb) + ',' +
-           std::to_string(ub) + "](" + right->as_string() + ')';
-  }
+  std::string get_symbol() const { return "R"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
   std::unique_ptr<ASTNode> deep_copy() const {
