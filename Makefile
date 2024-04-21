@@ -25,7 +25,7 @@ DYNAMIC_PYLIB := $(LIB_PATH)/libmltl$(shell python3-config --extension-suffix)
 # for editors using clangd
 COMPILE_FLAGS := compile_flags.txt
 
-.PHONY: default all clean cpp python examples clean_examples tests clean_tests install uninstall
+.PHONY: default all clean cpp python examples tests install uninstall
 
 default: $(COMPILE_FLAGS) cpp python
 all: $(COMPILE_FLAGS) cpp python examples tests
@@ -49,14 +49,8 @@ $(DYNAMIC_PYLIB): $(SRC_PYBIND) $(SRC) $(HEADERS) Makefile
 examples:
 	$(MAKE) -C examples
 
-clean_examples:
-	$(MAKE) -C examples clean
-
 tests: cpp python
 	$(MAKE) -C tests/regression test
-
-clean_tests:
-	$(MAKE) -C tests/regression clean
 
 FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS) $(shell python3-config --includes)
 $(COMPILE_FLAGS): Makefile
@@ -81,8 +75,7 @@ uninstall:
 	rm -rf $(PREFIX)/lib/libmltl
 	rm -rf $(PREFIX)/include/libmltl
 
-clean: clean_examples clean_tests
+clean:
 	rm -rf $(LIB_PATH) $(OBJ_PATH) $(COMPILE_FLAGS)
-
-
-
+	$(MAKE) -C examples clean
+	$(MAKE) -C tests/regression clean
