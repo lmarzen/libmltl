@@ -66,6 +66,7 @@ public:
   Constant(bool value) : val(value){};
 
   bool get_value() const { return val; }
+  void set_value(bool new_value) { val = new_value; }
 
   ASTNode::Type get_type() const { return ASTNode::Type::Constant; }
   bool is_unary_op() const { return false; };
@@ -114,6 +115,7 @@ public:
   Variable(unsigned int id) : id(id){};
 
   unsigned int get_id() const { return id; }
+  void set_id(unsigned int new_id) { id = new_id; }
 
   ASTNode::Type get_type() const { return ASTNode::Type::Variable; }
   bool is_unary_op() const { return false; };
@@ -166,6 +168,7 @@ public:
   UnaryOp(std::unique_ptr<ASTNode> operand) : operand(std::move(operand)){};
 
   const ASTNode &get_operand() const { return *operand; }
+  ASTNode &get_operand() { return *operand; }
   std::unique_ptr<ASTNode> release_operand() { return std::move(operand); }
   void set_operand(std::unique_ptr<ASTNode> new_operand) {
     operand = std::move(new_operand);
@@ -353,6 +356,8 @@ public:
 
   const ASTNode &get_left() const { return *left; }
   const ASTNode &get_right() const { return *right; }
+  ASTNode &get_left() { return *left; }
+  ASTNode &get_right() { return *right; }
   std::unique_ptr<ASTNode> release_left() { return std::move(left); }
   std::unique_ptr<ASTNode> release_right() { return std::move(right); }
   void set_left(std::unique_ptr<ASTNode> new_left) {
@@ -473,7 +478,7 @@ public:
            right->evaluate_subt(trace, begin, end);
   }
   std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<And>(left->deep_copy(), right->deep_copy());
+    return std::make_unique<Xor>(left->deep_copy(), right->deep_copy());
   }
 };
 

@@ -66,14 +66,16 @@ PYBIND11_MODULE(libmltl, m) {
 
   py::class_<Constant, ASTNode>(m, "Constant")
       .def(py::init<bool>())
-      .def("get_value", &Constant::get_value);
+      .def("get_value", &Constant::get_value)
+      .def("set_value", &Constant::set_value);
 
   py::class_<Variable, ASTNode>(m, "Variable")
       .def(py::init<unsigned int>())
-      .def("get_id", &Variable::get_id);
+      .def("get_id", &Variable::get_id)
+      .def("set_id", &Variable::set_id);
 
   py::class_<UnaryOp, ASTNode>(m, "UnaryOp")
-      .def("get_operand", &UnaryOp::get_operand,
+      .def("get_operand", py::overload_cast<>(&UnaryOp::get_operand),
            py::return_value_policy::reference)
       .def("release_operand", &UnaryOp::release_operand)
       .def("set_operand",
@@ -101,8 +103,9 @@ PYBIND11_MODULE(libmltl, m) {
   // .def(py::init<unique_ptr<ASTNode>, size_t, size_t>())
 
   py::class_<BinaryOp, ASTNode>(m, "BinaryOp")
-      .def("get_left", &BinaryOp::get_left, py::return_value_policy::reference)
-      .def("get_right", &BinaryOp::get_right,
+      .def("get_left", py::overload_cast<>(&BinaryOp::get_left),
+           py::return_value_policy::reference)
+      .def("get_right", py::overload_cast<>(&BinaryOp::get_right),
            py::return_value_policy::reference)
       .def("release_left", &BinaryOp::release_left)
       .def("release_right", &BinaryOp::release_right)
@@ -119,25 +122,20 @@ PYBIND11_MODULE(libmltl, m) {
 
   py::class_<BinaryPropOp, BinaryOp>(m, "BinaryPropOp");
 
-  py::class_<And, BinaryPropOp>(m, "And")
-      .def(py::init<>());
-      // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
+  py::class_<And, BinaryPropOp>(m, "And").def(py::init<>());
+  // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
 
-  py::class_<Xor, BinaryPropOp>(m, "Xor")
-      .def(py::init<>());
-      // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
+  py::class_<Xor, BinaryPropOp>(m, "Xor").def(py::init<>());
+  // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
 
-  py::class_<Or, BinaryPropOp>(m, "Or")
-      .def(py::init<>());
-      // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
+  py::class_<Or, BinaryPropOp>(m, "Or").def(py::init<>());
+  // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
 
-  py::class_<Implies, BinaryPropOp>(m, "Implies")
-      .def(py::init<>());
-      // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
+  py::class_<Implies, BinaryPropOp>(m, "Implies").def(py::init<>());
+  // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
 
-  py::class_<Equiv, BinaryPropOp>(m, "Equiv")
-      .def(py::init<>());
-      // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
+  py::class_<Equiv, BinaryPropOp>(m, "Equiv").def(py::init<>());
+  // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>>())
 
   py::class_<BinaryTempOp, BinaryOp>(m, "BinaryTempOp")
       .def("get_lower_bound", &BinaryTempOp::get_lower_bound)
@@ -145,15 +143,13 @@ PYBIND11_MODULE(libmltl, m) {
       .def("set_lower_bound", &BinaryTempOp::set_lower_bound)
       .def("set_upper_bound", &BinaryTempOp::set_upper_bound);
 
-  py::class_<Until, BinaryTempOp>(m, "Until")
-      .def(py::init<>());
-      // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>, size_t,
-      // size_t>())
+  py::class_<Until, BinaryTempOp>(m, "Until").def(py::init<>());
+  // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>, size_t,
+  // size_t>())
 
-  py::class_<Release, BinaryTempOp>(m, "Release")
-      .def(py::init<>());
-      // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>, size_t,
-      // size_t>())
+  py::class_<Release, BinaryTempOp>(m, "Release").def(py::init<>());
+  // .def(py::init<unique_ptr<ASTNode>, unique_ptr<ASTNode>, size_t,
+  // size_t>())
 
   /* parser.hh
    */
