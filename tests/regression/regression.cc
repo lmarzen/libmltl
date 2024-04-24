@@ -16,14 +16,14 @@ size_t max_trace_length(const vector<vector<string>> &traces) {
   return max;
 }
 
-void generate_formulas(vector<unique_ptr<ASTNode>> &formulas, int vars,
+void generate_formulas(vector<shared_ptr<ASTNode>> &formulas, int vars,
                        size_t max_ub) {
   size_t num_depth_minus_1 = formulas.size();
   if (num_depth_minus_1 == 0) {
-    // formulas.push_back(make_unique<Constant>(true));
-    // formulas.push_back(make_unique<Constant>(false));
+    // formulas.push_back(make_shared<Constant>(true));
+    // formulas.push_back(make_shared<Constant>(false));
     for (int i = 0; i < vars; ++i) {
-      formulas.emplace_back(make_unique<Variable>(i));
+      formulas.emplace_back(make_shared<Variable>(i));
     }
     return;
   }
@@ -32,54 +32,54 @@ void generate_formulas(vector<unique_ptr<ASTNode>> &formulas, int vars,
   for (size_t i = 0; i < num_depth_minus_1; ++i) {
     if (formulas[i]->get_type() != ASTNode::Type::Negation) {
       // no need to double negate
-      formulas.emplace_back(make_unique<Negation>(formulas[i]->deep_copy()));
+      formulas.emplace_back(make_shared<Negation>(formulas[i]));
     }
     for (size_t lb = 0; lb <= max_ub; ++lb) {
       for (size_t ub = lb; ub <= max_ub; ++ub) {
         formulas.emplace_back(
-            make_unique<Finally>(formulas[i]->deep_copy(), lb, ub));
+            make_shared<Finally>(formulas[i], lb, ub));
         formulas.emplace_back(
-            make_unique<Globally>(formulas[i]->deep_copy(), lb, ub));
+            make_shared<Globally>(formulas[i], lb, ub));
       }
     }
-    formulas.emplace_back(make_unique<Finally>(formulas[i]->deep_copy(), 0, 2));
+    formulas.emplace_back(make_shared<Finally>(formulas[i], 0, 2));
     formulas.emplace_back(
-        make_unique<Globally>(formulas[i]->deep_copy(), 0, 2));
+        make_shared<Globally>(formulas[i], 0, 2));
   }
 
   // create every possible binary operation
   for (size_t i = 0; i < num_depth_minus_1; ++i) {
     size_t op = num_depth_minus_1 - 1 - i;
     formulas.emplace_back(
-        make_unique<And>(formulas[i]->deep_copy(), formulas[op]->deep_copy()));
+        make_shared<And>(formulas[i], formulas[op]));
     // formulas.emplace_back(
-    //     make_unique<Xor>(formulas[i]->deep_copy(),
-    //     formulas[j]->deep_copy()));
+    //     make_shared<Xor>(formulas[i],
+    //     formulas[j]));
     formulas.emplace_back(
-        make_unique<Or>(formulas[i]->deep_copy(), formulas[op]->deep_copy()));
-    // formulas.emplace_back(make_unique<Implies>(formulas[i]->deep_copy(),
-    //                                            formulas[j]->deep_copy()));
-    // formulas.emplace_back(make_unique<Equiv>(formulas[i]->deep_copy(),
-    //                                          formulas[j]->deep_copy()));
+        make_shared<Or>(formulas[i], formulas[op]));
+    // formulas.emplace_back(make_shared<Implies>(formulas[i],
+    //                                            formulas[j]));
+    // formulas.emplace_back(make_shared<Equiv>(formulas[i],
+    //                                          formulas[j]));
     for (size_t lb = 0; lb <= max_ub; ++lb) {
       for (size_t ub = lb; ub <= max_ub; ++ub) {
-        formulas.emplace_back(make_unique<Until>(
-            formulas[i]->deep_copy(), formulas[op]->deep_copy(), lb, ub));
-        formulas.emplace_back(make_unique<Release>(
-            formulas[i]->deep_copy(), formulas[op]->deep_copy(), lb, ub));
+        formulas.emplace_back(make_shared<Until>(
+            formulas[i], formulas[op], lb, ub));
+        formulas.emplace_back(make_shared<Release>(
+            formulas[i], formulas[op], lb, ub));
       }
     }
-    // formulas.emplace_back(make_unique<Until>(formulas[i]->deep_copy(),
-    //                                          formulas[op]->deep_copy(), 0,
+    // formulas.emplace_back(make_shared<Until>(formulas[i],
+    //                                          formulas[op], 0,
     //                                          2));
-    // formulas.emplace_back(make_unique<Release>(
-    //     formulas[i]->deep_copy(), formulas[op]->deep_copy(), 0, 2));
+    // formulas.emplace_back(make_shared<Release>(
+    //     formulas[i], formulas[op], 0, 2));
   }
 
   return;
 }
 
-void generate_formulas(vector<unique_ptr<ASTNode>> &formulas, int max_depth,
+void generate_formulas(vector<shared_ptr<ASTNode>> &formulas, int max_depth,
                        int max_vars, size_t max_ub) {
   for (int depth = 0; depth <= max_depth; ++depth) {
     cout << "generating formulas of depth " << depth << "\n";
@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
                start.tv_usec / 1e6; // in seconds
   cout << "trace generation took: " << time_taken << "s\n";
 
-  vector<unique_ptr<ASTNode>> formulas;
+  vector<shared_ptr<ASTNode>> formulas;
   gettimeofday(&start, NULL); // start timer
   generate_formulas(formulas, max_formula_depth, max_vars, max_ub);
   gettimeofday(&end, NULL); // stop timer

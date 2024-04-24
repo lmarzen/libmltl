@@ -46,7 +46,7 @@ public:
   virtual size_t size() const = 0;
   virtual size_t depth() const = 0;
   virtual size_t count(ASTNode::Type target_type) const = 0;
-  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::shared_ptr<ASTNode> deep_copy() const = 0;
   virtual bool operator==(const ASTNode &other) const = 0;
   virtual bool operator!=(const ASTNode &other) const {
     return !(*this == other);
@@ -86,8 +86,8 @@ public:
   size_t count(ASTNode::Type target_type) const {
     return (get_type() == target_type);
   }
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Constant>(val);
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Constant>(val);
   }
   bool operator==(const ASTNode &other) const {
     return ((get_type() == other.get_type()) &&
@@ -138,8 +138,8 @@ public:
   size_t count(ASTNode::Type target_type) const {
     return (get_type() == target_type);
   }
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Variable>(id);
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Variable>(id);
   }
   bool operator==(const ASTNode &other) const {
     return ((get_type() == other.get_type()) &&
@@ -161,16 +161,15 @@ public:
 
 class UnaryOp : public ASTNode {
 protected:
-  std::unique_ptr<ASTNode> operand;
+  std::shared_ptr<ASTNode> operand;
 
 public:
   UnaryOp() : operand(nullptr){};
-  UnaryOp(std::unique_ptr<ASTNode> operand) : operand(std::move(operand)){};
+  UnaryOp(std::shared_ptr<ASTNode> operand) : operand(std::move(operand)){};
 
-  const ASTNode &get_operand() const { return *operand; }
-  ASTNode &get_operand() { return *operand; }
-  std::unique_ptr<ASTNode> release_operand() { return std::move(operand); }
-  void set_operand(std::unique_ptr<ASTNode> new_operand) {
+  std::shared_ptr<const ASTNode> get_operand() const { return operand; }
+  std::shared_ptr<ASTNode> get_operand() { return operand; }
+  void set_operand(std::shared_ptr<ASTNode> new_operand) {
     operand = std::move(new_operand);
   }
 
@@ -191,7 +190,7 @@ public:
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
   virtual size_t future_reach() const = 0;
-  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::shared_ptr<ASTNode> deep_copy() const = 0;
   virtual bool operator==(const ASTNode &other) const = 0;
   virtual bool operator<(const ASTNode &other) const = 0;
   virtual bool operator<=(const ASTNode &other) const = 0;
@@ -234,7 +233,7 @@ public:
   virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
-  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::shared_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class Negation : public UnaryPropOp {
@@ -247,8 +246,8 @@ public:
                      size_t end) const {
     return !operand->evaluate_subt(trace, begin, end);
   }
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Negation>(operand->deep_copy());
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Negation>(operand->deep_copy());
   }
 };
 
@@ -258,7 +257,7 @@ protected:
 
 public:
   UnaryTempOp() : UnaryOp(), lb(0), ub(0){};
-  UnaryTempOp(std::unique_ptr<ASTNode> operand, size_t lb, size_t ub)
+  UnaryTempOp(std::shared_ptr<ASTNode> operand, size_t lb, size_t ub)
       : UnaryOp(std::move(operand)), lb(lb), ub(ub){};
 
   size_t get_lower_bound() const { return lb; }
@@ -316,7 +315,7 @@ public:
   virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
-  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::shared_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class Finally : public UnaryTempOp {
@@ -327,8 +326,8 @@ public:
   std::string get_symbol() const { return "F"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Finally>(operand->deep_copy(), lb, ub);
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Finally>(operand->deep_copy(), lb, ub);
   }
 };
 
@@ -340,30 +339,28 @@ public:
   std::string get_symbol() const { return "G"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Globally>(operand->deep_copy(), lb, ub);
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Globally>(operand->deep_copy(), lb, ub);
   }
 };
 
 class BinaryOp : public ASTNode {
 protected:
-  std::unique_ptr<ASTNode> left, right;
+  std::shared_ptr<ASTNode> left, right;
 
 public:
   BinaryOp() : left(nullptr), right(nullptr){};
-  BinaryOp(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode> right)
+  BinaryOp(std::shared_ptr<ASTNode> left, std::shared_ptr<ASTNode> right)
       : left(std::move(left)), right(std::move(right)){};
-
-  const ASTNode &get_left() const { return *left; }
-  const ASTNode &get_right() const { return *right; }
-  ASTNode &get_left() { return *left; }
-  ASTNode &get_right() { return *right; }
-  std::unique_ptr<ASTNode> release_left() { return std::move(left); }
-  std::unique_ptr<ASTNode> release_right() { return std::move(right); }
-  void set_left(std::unique_ptr<ASTNode> new_left) {
+ 
+  std::shared_ptr<const ASTNode> get_left() const { return left; }
+  std::shared_ptr<const ASTNode> get_right() const { return right; }
+  std::shared_ptr<ASTNode> get_left() { return left; }
+  std::shared_ptr<ASTNode> get_right() { return right; }
+  void set_left(std::shared_ptr<ASTNode> new_left) {
     left = std::move(new_left);
   }
-  void set_right(std::unique_ptr<ASTNode> new_right) {
+  void set_right(std::shared_ptr<ASTNode> new_right) {
     left = std::move(new_right);
   }
 
@@ -385,7 +382,7 @@ public:
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
   virtual size_t future_reach() const = 0;
-  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::shared_ptr<ASTNode> deep_copy() const = 0;
   virtual bool operator==(const ASTNode &other) const = 0;
   virtual bool operator<(const ASTNode &other) const = 0;
   virtual bool operator<=(const ASTNode &other) const = 0;
@@ -447,7 +444,7 @@ public:
   virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
-  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::shared_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class And : public BinaryPropOp {
@@ -461,8 +458,8 @@ public:
     return left->evaluate_subt(trace, begin, end) &&
            right->evaluate_subt(trace, begin, end);
   }
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<And>(left->deep_copy(), right->deep_copy());
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<And>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -477,8 +474,8 @@ public:
     return left->evaluate_subt(trace, begin, end) !=
            right->evaluate_subt(trace, begin, end);
   }
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Xor>(left->deep_copy(), right->deep_copy());
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Xor>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -493,8 +490,8 @@ public:
     return left->evaluate_subt(trace, begin, end) ||
            right->evaluate_subt(trace, begin, end);
   }
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Or>(left->deep_copy(), right->deep_copy());
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Or>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -509,8 +506,8 @@ public:
     return !left->evaluate_subt(trace, begin, end) ||
            right->evaluate_subt(trace, begin, end);
   }
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Implies>(left->deep_copy(), right->deep_copy());
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Implies>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -525,8 +522,8 @@ public:
     return left->evaluate_subt(trace, begin, end) ==
            right->evaluate_subt(trace, begin, end);
   }
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Equiv>(left->deep_copy(), right->deep_copy());
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Equiv>(left->deep_copy(), right->deep_copy());
   }
 };
 
@@ -536,7 +533,7 @@ protected:
 
 public:
   BinaryTempOp() : BinaryOp(), lb(0), ub(0){};
-  BinaryTempOp(std::unique_ptr<ASTNode> left, std::unique_ptr<ASTNode> right,
+  BinaryTempOp(std::shared_ptr<ASTNode> left, std::shared_ptr<ASTNode> right,
                size_t lb, size_t ub)
       : BinaryOp(std::move(left), std::move(right)), lb(lb), ub(ub){};
 
@@ -619,7 +616,7 @@ public:
   virtual std::string get_symbol() const = 0;
   virtual bool evaluate_subt(const std::vector<std::string> &trace,
                              size_t begin, size_t end) const = 0;
-  virtual std::unique_ptr<ASTNode> deep_copy() const = 0;
+  virtual std::shared_ptr<ASTNode> deep_copy() const = 0;
 };
 
 class Until : public BinaryTempOp {
@@ -630,8 +627,8 @@ public:
   std::string get_symbol() const { return "U"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
-  std::unique_ptr<ASTNode> deep_copy() const {
-    return std::make_unique<Until>(left->deep_copy(), right->deep_copy(), lb,
+  std::shared_ptr<ASTNode> deep_copy() const {
+    return std::make_shared<Until>(left->deep_copy(), right->deep_copy(), lb,
                                    ub);
   }
 };
@@ -644,9 +641,9 @@ public:
   std::string get_symbol() const { return "R"; }
   bool evaluate_subt(const std::vector<std::string> &trace, size_t begin,
                      size_t end) const;
-  std::unique_ptr<ASTNode> deep_copy() const {
+  std::shared_ptr<ASTNode> deep_copy() const {
 
-    return std::make_unique<Release>(left->deep_copy(), right->deep_copy(), lb,
+    return std::make_shared<Release>(left->deep_copy(), right->deep_copy(), lb,
                                      ub);
   }
 };

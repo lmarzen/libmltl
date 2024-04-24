@@ -219,7 +219,7 @@ unique_ptr<ASTNode> parse(const string &f, size_t pos, size_t len,
 
 /* Fast recursive decent parser for MLTL.
  */
-unique_ptr<ASTNode> parse(const string &formula) {
+shared_ptr<ASTNode> parse(const string &formula) {
   string f = formula;
   // trim whitespace
   f.erase(

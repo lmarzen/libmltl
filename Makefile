@@ -2,10 +2,17 @@ CXX := g++
 CFLAGS := -std=c++17 -pedantic -Wall -fno-rtti
 LDFLAGS :=
 INCLUDES := -Iinclude
+
 ifeq ($(DEBUG), 1)
   CFLAGS += -DDEBUG -g -O0
 else
   CFLAGS += -DNDEBUG -O2
+endif
+ifeq ($(PROFILE), 1)
+  CFLAGS += -pg
+  LDFLAGS += -pg
+else
+  PROFILE := 0
 endif
 
 SRC_PATH := src
@@ -25,12 +32,18 @@ DYNAMIC_PYLIB := $(LIB_PATH)/libmltl$(shell python3-config --extension-suffix)
 # for editors using clangd
 COMPILE_FLAGS := compile_flags.txt
 
-.PHONY: default all clean cpp python examples tests install uninstall
+.PHONY: default all clean debug profile cpp python examples tests install uninstall
 
 default: $(COMPILE_FLAGS) cpp python
 all: $(COMPILE_FLAGS) cpp python examples tests
 cpp: $(STATIC_LIB)
 python: $(DYNAMIC_PYLIB)
+
+debug:
+	$(MAKE) DEBUG=1 --no-print-directory
+
+profile:
+	$(MAKE) PROFILE=1 --no-print-directory
 
 $(OBJ_PATH)/%.o: $(SRC_PATH)/%.cc $(HEADERS) Makefile
 	@mkdir -p $(OBJ_PATH)
@@ -46,11 +59,11 @@ $(DYNAMIC_PYLIB): $(SRC_PYBIND) $(SRC) $(HEADERS) Makefile
 		$(shell python3-config --cflags --ldflags) \
 		-o $@ $(SRC_PYBIND) $(SRC)
 
-examples:
-	$(MAKE) -C examples
+examples: cpp python
+	$(MAKE) -C examples DEBUG=$(DEBUG) PROFILE=$(PROFILE) --no-print-directory
 
 tests: cpp python
-	$(MAKE) -C tests/regression test
+	$(MAKE) -C tests/regression test DEBUG=$(DEBUG) PROFILE=$(PROFILE) --no-print-directory
 
 FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS) $(shell python3-config --includes)
 $(COMPILE_FLAGS): Makefile
@@ -77,5 +90,5 @@ uninstall:
 
 clean:
 	rm -rf $(LIB_PATH) $(OBJ_PATH) $(COMPILE_FLAGS)
-	$(MAKE) -C examples clean
-	$(MAKE) -C tests/regression clean
+	$(MAKE) -C examples clean --no-print-directory
+	$(MAKE) -C tests/regression clean --no-print-directory

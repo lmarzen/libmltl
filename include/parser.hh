@@ -18,7 +18,7 @@ public:
  *
  * On an invalid MLTL formula, program will exit and print syntax error.
  */
-std::unique_ptr<ASTNode> parse(const std::string &formula);
+std::shared_ptr<ASTNode> parse(const std::string &formula);
 
 /* Reads a trace from file.
  *

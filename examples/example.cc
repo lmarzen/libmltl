@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  unique_ptr<ASTNode> test = parse("true");
+  shared_ptr<ASTNode> test = parse("true");
   test = parse("(p0&~p1)R[0,3](p2)");
   cout << test->as_string() << "\n";
   cout << test->evaluate(
