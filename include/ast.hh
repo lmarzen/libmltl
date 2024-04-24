@@ -352,7 +352,7 @@ public:
   BinaryOp() : left(nullptr), right(nullptr){};
   BinaryOp(std::shared_ptr<ASTNode> left, std::shared_ptr<ASTNode> right)
       : left(std::move(left)), right(std::move(right)){};
- 
+
   const ASTNode &get_left() const { return *left; }
   const ASTNode &get_right() const { return *right; }
   ASTNode &get_left() { return *left; }
