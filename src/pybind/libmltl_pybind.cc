@@ -59,7 +59,8 @@ PYBIND11_MODULE(libmltl, m) {
       .def("set_id", &Variable::set_id);
 
   py::class_<UnaryOp, ASTNode, shared_ptr<UnaryOp>>(m, "UnaryOp")
-      .def("get_operand", py::overload_cast<>(&UnaryOp::get_operand))
+      .def("get_operand", py::overload_cast<>(&UnaryOp::get_operand),
+           py::return_value_policy::reference)
       .def("set_operand", &UnaryOp::set_operand);
 
   py::class_<UnaryPropOp, UnaryOp, shared_ptr<UnaryPropOp>>(m, "UnaryPropOp");
@@ -83,8 +84,10 @@ PYBIND11_MODULE(libmltl, m) {
       .def(py::init<>());
 
   py::class_<BinaryOp, ASTNode, shared_ptr<BinaryOp>>(m, "BinaryOp")
-      .def("get_left", py::overload_cast<>(&BinaryOp::get_left))
-      .def("get_right", py::overload_cast<>(&BinaryOp::get_right))
+      .def("get_left", py::overload_cast<>(&BinaryOp::get_left),
+           py::return_value_policy::reference)
+      .def("get_right", py::overload_cast<>(&BinaryOp::get_right),
+           py::return_value_policy::reference)
       .def("set_left", &BinaryOp::set_left)
       .def("set_right", &BinaryOp::set_right);
 

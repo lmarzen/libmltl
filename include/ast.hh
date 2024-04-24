@@ -167,8 +167,8 @@ public:
   UnaryOp() : operand(nullptr){};
   UnaryOp(std::shared_ptr<ASTNode> operand) : operand(std::move(operand)){};
 
-  std::shared_ptr<const ASTNode> get_operand() const { return operand; }
-  std::shared_ptr<ASTNode> get_operand() { return operand; }
+  const ASTNode &get_operand() const { return *operand; }
+  ASTNode &get_operand() { return *operand; }
   void set_operand(std::shared_ptr<ASTNode> new_operand) {
     operand = std::move(new_operand);
   }
@@ -353,10 +353,10 @@ public:
   BinaryOp(std::shared_ptr<ASTNode> left, std::shared_ptr<ASTNode> right)
       : left(std::move(left)), right(std::move(right)){};
  
-  std::shared_ptr<const ASTNode> get_left() const { return left; }
-  std::shared_ptr<const ASTNode> get_right() const { return right; }
-  std::shared_ptr<ASTNode> get_left() { return left; }
-  std::shared_ptr<ASTNode> get_right() { return right; }
+  const ASTNode &get_left() const { return *left; }
+  const ASTNode &get_right() const { return *right; }
+  ASTNode &get_left() { return *left; }
+  ASTNode &get_right() { return *right; }
   void set_left(std::shared_ptr<ASTNode> new_left) {
     left = std::move(new_left);
   }
