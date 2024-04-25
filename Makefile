@@ -56,7 +56,7 @@ $(STATIC_LIB): $(OBJ)
 $(DYNAMIC_PYLIB): $(SRC_PYBIND) $(SRC) $(HEADERS) Makefile
 	@mkdir -p $(LIB_PATH)
 	$(CXX) -std=c++17 -shared -fPIC -DNDEBUG -O2 $(INCLUDES) \
-		$(shell python -m pybind11 --includes) \
+		$(shell python3 -m pybind11 --includes) \
 		-o $@ $(SRC_PYBIND) $(SRC)
 
 examples: cpp python
@@ -65,7 +65,7 @@ examples: cpp python
 tests: cpp python
 	$(MAKE) -C tests/regression test DEBUG=$(DEBUG) PROFILE=$(PROFILE) --no-print-directory
 
-FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS) $(shell python -m pybind11 --includes)
+FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS) $(shell python3 -m pybind11 --includes)
 $(COMPILE_FLAGS): Makefile
 	@echo -n > $(COMPILE_FLAGS)
 	@for flag in $(FLAGS); do \
