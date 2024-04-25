@@ -1,2 +1,2 @@
 # libmltl
-A high-performance library for the parsing, manipulating the Abstract Syntax Tree (AST), and evaluating MLTL (Mission-time Linear Temporal Logic) formulas.
+A high-performance library for MLTL (Mission-time Linear Temporal Logic) parsing, Abstract Syntax Tree (AST) manipulation, and formula evaluation.
