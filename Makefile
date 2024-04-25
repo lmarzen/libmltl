@@ -55,8 +55,8 @@ $(STATIC_LIB): $(OBJ)
 
 $(DYNAMIC_PYLIB): $(SRC_PYBIND) $(SRC) $(HEADERS) Makefile
 	@mkdir -p $(LIB_PATH)
-	$(CXX) -std=c++17 -shared -fPIC $(INCLUDES) \
-		$(shell python3-config --cflags --ldflags) \
+	$(CXX) -std=c++17 -shared -fPIC -DNDEBUG -O2 $(INCLUDES) \
+		$(shell python -m pybind11 --includes) \
 		-o $@ $(SRC_PYBIND) $(SRC)
 
 examples: cpp python
