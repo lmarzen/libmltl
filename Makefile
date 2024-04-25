@@ -65,7 +65,7 @@ examples: cpp python
 tests: cpp python
 	$(MAKE) -C tests/regression test DEBUG=$(DEBUG) PROFILE=$(PROFILE) --no-print-directory
 
-FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS) $(shell python3-config --includes)
+FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS) $(shell python -m pybind11 --includes)
 $(COMPILE_FLAGS): Makefile
 	@echo -n > $(COMPILE_FLAGS)
 	@for flag in $(FLAGS); do \
