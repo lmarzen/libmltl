@@ -30,7 +30,7 @@ print("operand:", ast.get_operand().as_string())
 # count total operators or variables in formula
 print("num variables:", ast.count(mltl.Type.Variable))
 # get type of a node
-print("node type", ast.get_type())
+print("node type:", ast.get_type())
 
 # copy
 copy = ast.deep_copy()
@@ -42,14 +42,15 @@ print("original formula:", ast.as_pretty_string())
 print("modified formula:", copy.as_pretty_string())
 
 # build formula without parser
-new_globally = mltl.Finally()
-new_globally.set_lower_bound(0)
-new_globally.set_upper_bound(2)
-new_globally.set_operand(mltl.Variable(1)) # p1
-print("newly built formula:", new_globally.as_pretty_string())
+new_finally = mltl.Finally()
+new_finally.set_lower_bound(0)
+new_finally.set_upper_bound(2)
+new_finally.set_operand(mltl.Variable(1)) # p1
+print("newly built formula:", new_finally.as_pretty_string())
 
 # use comparison operators: ==, !=, <, >, <=, >=
 print(mltl.parse("(F[0,2](p3))") == mltl.parse("(F[0,2](p1))"))
+# lexicographical compare
 print(mltl.parse("(F[0,2](p3))") < mltl.parse("(F[0,3](p3))"))
 
 # error example (illegal bounds)
