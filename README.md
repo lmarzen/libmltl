@@ -1,5 +1,5 @@
 # libmltl
-A high-performance library for MLTL (Mission-time Linear Temporal Logic) parsing, Abstract Syntax Tree (AST) manipulation, and formula evaluation. Supports C++ and Python interfaces.
+A high-performance library for Mission-time Linear Temporal Logic (MLTL) parsing, Abstract Syntax Tree (AST) manipulation, and formula evaluation. Supports C++ and Python interfaces.
 
 ```
 libmltl/
