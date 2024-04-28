@@ -69,7 +69,7 @@ make uninstall
 
 ## Usage
 
-See `./examples/` for full C++ and Python examples.
+See `examples/` for full C++ and Python examples.
 
 ### C++
 ```c++
