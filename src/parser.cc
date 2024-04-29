@@ -182,8 +182,7 @@ size_t find_lowest_prec_binary_op(const string &f, size_t pos, size_t len,
   }
   if (lowest_prec_pos == (size_t)-1) {
     // no binary operator found :(
-    error("unexpected token", f, begin, begin,
-          end); // no return
+    error("unexpected token", f, begin, begin, end); // no return
   }
   return lowest_prec_pos;
 }
@@ -412,8 +411,7 @@ vector<string> read_trace_file(const string &trace_file_path) {
   return trace;
 }
 
-vector<vector<string>>
-read_trace_files(const string &trace_directory_path) {
+vector<vector<string>> read_trace_files(const string &trace_directory_path) {
   vector<vector<string>> traces;
   for (const auto &entry : fs::directory_iterator(trace_directory_path)) {
     vector<string> new_trace = read_trace_file(entry.path());
