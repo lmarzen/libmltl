@@ -235,7 +235,7 @@ shared_ptr<ASTNode> parse(const string &formula) {
     }
     if (f[i] == ')') {
       if (paren_stack.empty()) {
-        error("unbalanced parenthesis, expected '('", f, i, 0,
+        error("unbalanced parentheses, expected '('", f, i, 0,
               i + 1); // no return
       }
       size_t opening_paren_index = paren_stack.top();
@@ -248,7 +248,7 @@ shared_ptr<ASTNode> parse(const string &formula) {
 
   if (!paren_stack.empty()) {
     size_t pos = paren_stack.top();
-    error("unbalanced parenthesis, expected ')'", f, pos, pos,
+    error("unbalanced parentheses, expected ')'", f, pos, pos,
           f.length()); // no return
   }
 
