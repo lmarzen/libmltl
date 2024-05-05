@@ -67,6 +67,18 @@ libmltl can be uninstalled using (specify the prefix path with `PREFIX=` if appl
 make uninstall
 ```
 
+## Syntax
+
+| Precedence | Operator          | Description                                                               | Associativity |
+|------------|-------------------|---------------------------------------------------------------------------|---------------|
+|      1     | `!` `~` <br> `F[a,b]` <br> `G[a,b]` <br> | Logical negation <br> Temporal finally / eventually <br> Temporal globally / always | Right-to-left |
+|      2     | `U[a,b]` <br> `R[a,b]`     | Temporal (strong) until <br> Temporal (weak) release                           | Left-to-right |
+|      3     | `&`                 | Logical AND                                                               | Left-to-right |
+|      4     | `^`                 | Logical XOR (exclusive or)                                                | Left-to-right |
+|      5     | `\|`                | Logical OR (inclusive or)                                                 | Left-to-right |
+|      6     | `->`                | Logical implication                                                       | Left-to-right |
+|      7     | `<->` `=`             | Logical equivalence                                                       | Left-to-right |
+
 ## Usage
 
 See `examples/` for full C++ and Python examples.
