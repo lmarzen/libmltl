@@ -69,6 +69,8 @@ make uninstall
 
 ## Syntax
 
+The following table lists the precedence and associativity of MLTL operators as interpreted by libmltl. Operators are listed top to bottom, in descending precedence. 
+
 | Precedence | Operator          | Description                                                               | Associativity |
 |------------|-------------------|---------------------------------------------------------------------------|---------------|
 |      1     | `!` `~` <br> `F[a,b]` <br> `G[a,b]` <br> | Logical negation <br> Temporal finally / eventually <br> Temporal globally / always | Right-to-left |
@@ -78,6 +80,11 @@ make uninstall
 |      5     | `\|`                | Logical OR (inclusive or)                                                 | Left-to-right |
 |      6     | `->`                | Logical implication                                                       | Left-to-right |
 |      7     | `<->` `=`             | Logical equivalence                                                       | Left-to-right |
+
+_Note:_ Parentheses can be used to clarify the intended evaluation of a complex compound expression, even if they are not strictly required.
+
+Propositional variables are defined by _pN_ , where _N_ ≥ 0. ex: `p0`, `p1`, `p123`. Propositional constants, _true_ and _false_, are specified using `t`, `tt`, or `true` and `f`, `ff`, or `false`, respectively. Temporal bounds are specified with square brackets, [_a_, _b_], such that 0 ≤ _a_ ≤ _b_. ex:
+`G[0,10] p0`, `(p0 & p1) R[3, 6] p1`.
 
 ## Usage
 
