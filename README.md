@@ -10,7 +10,7 @@ libmltl/
 ├── tests/
 │   ├── regression/      - regression tests
 │   └── perf_compare/    - performance benchmark
-├── LICENSE              - GLPL v2.1
+├── LICENSE              - LGPL v2.1
 ├── Makefile             - for building
 └── README.md            - this file
 ```
