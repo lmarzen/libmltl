@@ -1,6 +1,6 @@
 CXX := g++
-CFLAGS := -std=c++17 -pedantic -Wall -fno-rtti
-LDFLAGS :=
+CFLAGS := -std=c++17 -pedantic -Wall -Wextra -fno-rtti
+LDFLAGS := -flto
 INCLUDES := -Iinclude
 
 ifeq ($(DEBUG), 1)
@@ -32,10 +32,10 @@ DYNAMIC_PYLIB := $(LIB_PATH)/libmltl$(shell python3-config --extension-suffix)
 # for editors using clangd
 COMPILE_FLAGS := compile_flags.txt
 
-.PHONY: default all clean debug profile cpp python examples tests install uninstall
+.PHONY: default all clean debug profile cpp python examples tests perf_compare install uninstall
 
 default: $(COMPILE_FLAGS) cpp python
-all: $(COMPILE_FLAGS) cpp python examples tests
+all: $(COMPILE_FLAGS) cpp python examples tests perf_compare
 cpp: $(STATIC_LIB)
 python: $(DYNAMIC_PYLIB)
 
@@ -65,6 +65,10 @@ examples: cpp python
 tests: cpp python
 	$(MAKE) -C tests/regression test DEBUG=$(DEBUG) PROFILE=$(PROFILE) --no-print-directory
 
+
+perf_compare: cpp python
+	$(MAKE) -C tests/perf_compare all DEBUG=$(DEBUG) PROFILE=$(PROFILE) --no-print-directory
+
 FLAGS := $(CFLAGS) $(INCLUDES) $(LFLAGS) $(shell python3 -m pybind11 --includes)
 $(COMPILE_FLAGS): Makefile
 	@echo -n > $(COMPILE_FLAGS)
@@ -89,6 +93,7 @@ uninstall:
 	rm -rf $(PREFIX)/include/libmltl
 
 clean:
-	rm -rf $(LIB_PATH) $(OBJ_PATH) $(COMPILE_FLAGS)
+	rm -rf $(LIB_PATH) $(OBJ_PATH) $(COMPILE_FLAGS) gmon.out
 	$(MAKE) -C examples clean --no-print-directory
 	$(MAKE) -C tests/regression clean --no-print-directory
+	$(MAKE) -C tests/perf_compare clean --no-print-directory

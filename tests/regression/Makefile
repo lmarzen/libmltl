@@ -1,7 +1,19 @@
 CC := g++
-CFLAGS := -std=c++17 -pedantic -Wall -O2 -fno-rtti
-LDFLAGS := -L../../lib -lmltl
+CFLAGS := -std=c++17 -pedantic -Wall -fno-rtti
+LDFLAGS := -L../../lib -lmltl -flto
 INCLUDES := -I../../include
+
+ifeq ($(DEBUG), 1)
+  CFLAGS += -DDEBUG -g -O0
+else
+  CFLAGS += -DNDEBUG -O2
+endif
+ifeq ($(PROFILE), 1)
+  CFLAGS += -pg
+  LDFLAGS += -pg
+else
+  PROFILE := 0
+endif
 
 TARGET := regression
 RESULTS := results.txt
@@ -24,4 +36,4 @@ reference: $(TARGET)
 	gzip -k9 $(RESULTS)
 
 clean:
-	rm -f $(TARGET) $(RESULTS)
+	rm -f $(TARGET) $(RESULTS) gmon.out

@@ -170,6 +170,7 @@ size_t find_lowest_prec_binary_op(const string &f, size_t pos, size_t len,
       if (!(pos + 2 < end && f[pos + 1] == '-' && f[pos + 2] == '>')) {
         break;
       }
+      [[fallthrough]];
     case '=':
       if (EquivPrec > lowest_prec) {
         lowest_prec_pos = pos;
@@ -380,6 +381,7 @@ unique_ptr<ASTNode> parse_compound_stmt(const string &f, size_t pos, size_t len,
     if (!(op_pos + 2 < end && f[op_pos + 1] == '-' && f[op_pos + 2] == '>')) {
       break;
     }
+    [[fallthrough]];
   case '=':
     left = parse(f, pos, op_pos - pos, paren_map);
     right = parse(f, op_pos + 3, end - op_pos - 3, paren_map);
