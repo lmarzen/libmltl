@@ -7,6 +7,7 @@ ifeq ($(DEBUG), 1)
   CFLAGS += -DDEBUG -g -O0
 else
   CFLAGS += -DNDEBUG -O2
+  DEBUG := 0
 endif
 ifeq ($(PROFILE), 1)
   CFLAGS += -pg
