@@ -22,7 +22,7 @@ libmltl/
 - Python 3
 - pybind11
 
-pybind11 is used to create Python bindings for C++ classes. Install pybind11 be installed either as a system package from your linux repository or alternatively via Pip.
+pybind11 is used to create Python bindings for C++ classes. Install pybind11 as either a system package from your linux repository or, alternatively, via Pip.
 
 For Debian/Ubuntu-based systems:
 ```bash
